@@ -2,33 +2,37 @@ const sqlite3 = require('sqlite3').verbose();
 const express = require('express');
 const path = require("path");
 const app = express();
+
 app.use(express.urlencoded({extended: false }));
 app.use(express.static(path.join(__dirname,'./public')));
+
 let db = new sqlite3.Database('./database/employees.db', sqlite3.OPEN_READWRITE,
-(err) => {
-if (err) {
-console.error(err.message);
-} else
-console.log('Connected to the employees database.');
+    (err) => {
+        if (err) {
+    console.error(err.message);
+     } else
+    console.log('Connected to the employees database.');
 });
+
 db.run('CREATE TABLE IF NOT EXISTS emp(id TEXT, name TEXT)');
 //Display interface
 app.get('/', function(req,res){
-res.sendFile(path.join(__dirname,'./public/index.html'));
-});
+    res.sendFile(path.join(__dirname,'./public/index.html'));
+    });
 // Insert
 app.post('/add', function(req,res){
-db.serialize(()=>{
-db.run('INSERT INTO emp(id,name) VALUES(?,?)', [req.body.id, req.body.name],
-function(err) {
-if (err) {
-return console.log(err.message);
-}
-console.log("New employee has been added");
-res.sendFile(path.join(__dirname,'./public/index.html'));
-});
-});
-});
+db.serialize(() => {
+        db.run('INSERT INTO emp(id,name) VALUES(?,?)', [req.body.id, req.body.name],
+        function(err) {
+        if (err) {
+            return console.log(err.message);
+        }
+        console.log("New employee has been added");
+        res.sendFile(path.join(__dirname,'./public/index.html'));
+            });
+        });
+    });
+    
 // View
 app.post('/view', function(req,res){
 db.serialize(()=>{
@@ -96,6 +100,6 @@ console.log('Closing the database connection.');
 res.send('Database connection successfully closed');
 });
 });
-app.listen(3000,()=>{
+app.listen(3008,()=>{
 console.log("Server listening on port: 3000");
 });
