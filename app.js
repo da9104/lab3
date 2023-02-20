@@ -2,8 +2,13 @@ const sqlite3 = require('sqlite3').verbose();
 const express = require('express');
 const path = require("path");
 const app = express();
+const router = require('./router');
 
 app.use(express.urlencoded({extended: false }));
+app.use(express.static('public'))
+app.set('views', 'views')
+app.set('view engine', 'ejs')
+
 app.use(express.static(path.join(__dirname,'./public')));
 
 let db = new sqlite3.Database('./database/employees.db', sqlite3.OPEN_READWRITE,
@@ -15,12 +20,16 @@ let db = new sqlite3.Database('./database/employees.db', sqlite3.OPEN_READWRITE,
 });
 
 db.run('CREATE TABLE IF NOT EXISTS emp(id TEXT, name TEXT)');
+
 //Display interface
-app.get('/', function(req,res){
-    res.sendFile(path.join(__dirname,'./public/index.html'));
-    });
+app.use('/', router)
+// app.get('/', function(req,res){
+//     res.sendFile(path.join(__dirname,'./public/index.html'));
+//  });
+
 // Insert
-app.post('/add', function(req,res){
+app.post('/add', function(req,res) {
+
 db.serialize(() => {
         db.run('INSERT INTO emp(id,name) VALUES(?,?)', [req.body.id, req.body.name],
         function(err) {
@@ -35,18 +44,19 @@ db.serialize(() => {
     
 // View
 app.post('/view', function(req,res){
-db.serialize(()=>{
+db.serialize(() => {
 db.each('SELECT id ID, name NAME FROM emp WHERE id =?', [req.body.id],
-function(err,row){
-if(err){
-res.send("Error encountered while displaying");
-return console.error(err.message);
-}
-res.send(` ID: ${row.ID}, Name: ${row.NAME}`);
-console.log("Entry displayed successfully");
+        function (err,row) {
+            if (err) {
+            res.send("Error encountered while displaying");
+            return console.error(err.message);
+            }
+    res.send(` ID: ${row.ID}, Name: ${row.NAME}`);
+    console.log("Entry displayed successfully");
+    });
+  });
 });
-});
-});
+
 //Update
 app.post('/update', function(req,res){
 db.serialize(()=>{
